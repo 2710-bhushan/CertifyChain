@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Control Dashboard</title>
+    <!-- Fonts and Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo-container">
+            <i class="bx bx-check-shield logo-icon"></i>
+            <span class="logo-text">DocVerify</span>
+        </div>
+        
+        <ul class="nav-links">
+            <li class="active">
+                <a href="#">
+                    <i class="bx bx-cabinet"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    <i class="bx bx-log-out-circle"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <h1>Registrar Control Dashboard</h1>
+                <p>Register student graduation profiles and generate cryptographic ledger hashes instantly.</p>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Left Panel: Issue Certificate -->
+            <div class="panel-card">
+                <div class="card-title">
+                    <span>Issue Digital Certificate</span>
+                </div>
+                <form method="POST" action="{{ url_for('issue_certificate') }}" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="student_name">Student Name</label>
+                        <input type="text" id="student_name" name="student_name" class="form-control" placeholder="e.g. Charlie Brown" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="degree">Degree</label>
+                            <input type="text" id="degree" name="degree" class="form-control" placeholder="e.g. Bachelor of Arts" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="major">Major</label>
+                            <input type="text" id="major" name="major" class="form-control" placeholder="e.g. Economics" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="gpa">Graduation GPA</label>
+                            <input type="number" id="gpa" name="gpa" class="form-control" min="0.00" max="4.00" step="0.01" value="3.50" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="issue_date">Graduation Date</label>
+                            <input type="date" id="issue_date" name="issue_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="justify-content: center; margin-top: 0.5rem;">
+                        <i class="bx bx-plus-circle"></i> Issue & Publish Signature
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Panel: Issued Certificates -->
+            <div class="panel-card" style="grid-column: span 1;">
+                <div class="card-title">
+                    <span>Issued Signature Ledger</span>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="cert-table">
+                        <thead>
+                            <tr>
+                                <th>Student & Date</th>
+                                <th>Certificate ID / UUID</th>
+                                <th>Cryptographic Hash</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cert in certs %}
+                            <tr>
+                                <td>
+                                    <strong style="color: white;">{{ cert.student_name }}</strong>
+                                    <small style="display: block; color: var(--text-secondary);">
+                                        Date: {{ cert.issue_date }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span style="font-family: monospace; font-size: 0.8rem;">{{ cert.id }}</span>
+                                    <button class="copy-id-btn" onclick="copyText('{{ cert.id }}')" style="margin-top: 4px;">
+                                        <i class="bx bx-copy"></i> Copy ID
+                                    </button>
+                                </td>
+                                <td>
+                                    <span style="font-family: monospace; font-size: 0.7rem; color: var(--primary); word-break: break-all;">
+                                        {{ cert.crypto_hash[:16] }}...
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function copyText(txt) {
+            navigator.clipboard.writeText(txt).then(() => {
+                alert("Certificate ID copied to clipboard!");
+            }).catch(err => {
+                console.error("Failed to copy", err);
+            });
+        }
+    </script>
+</body>
+</html>

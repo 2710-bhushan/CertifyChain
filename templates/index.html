@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Document Verification Ledger</title>
+    <!-- Fonts and Icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="logo-container">
+            <i class="bx bx-check-shield logo-icon"></i>
+            <span class="logo-text">DocVerify</span>
+        </div>
+        
+        <ul class="nav-links">
+            <li class="active">
+                <a href="{{ url_for('index') }}">
+                    <i class="bx bx-scan"></i>
+                    <span>Verify Document</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('login') }}">
+                    <i class="bx bx-log-in-circle"></i>
+                    <span>Registrar Login</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <h1>Digital Document Verification</h1>
+                <p>Lookup educational credentials and verify cryptographic hash integrity to check for data tampering.</p>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Left Panel: Verification Form -->
+            <div class="panel-card">
+                <div class="card-title">
+                    <span>Document Parameters</span>
+                </div>
+                <form id="verify-form">
+                    <div class="form-group">
+                        <label for="cert_id">Unique Certificate ID (UUID)</label>
+                        <input type="text" id="cert_id" name="cert_id" class="form-control" placeholder="e.g. cert-8881-aaa" required>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: bold; text-transform: uppercase;">
+                        Certificate Content to Verify:
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student_name">Student Name (Case insensitive)</label>
+                        <input type="text" id="student_name" name="student_name" class="form-control" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="degree">Degree Title</label>
+                            <input type="text" id="degree" name="degree" class="form-control" placeholder="e.g. Bachelor of Science" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="major">Major field</label>
+                            <input type="text" id="major" name="major" class="form-control" placeholder="e.g. Computer Science" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem; margin-top: 0.25rem;">
+                        <div class="form-group">
+                            <label for="gpa">Graduation GPA</label>
+                            <input type="number" id="gpa" name="gpa" class="form-control" min="0.0" max="4.0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="issue_date">Graduation Date</label>
+                            <input type="date" id="issue_date" name="issue_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; justify-content: center; margin-top: 1rem;" id="submit-btn">
+                        <i class="bx bx-check-shield"></i> Run Signature Audit
+                    </button>
+                </form>
+
+                <!-- Quick load presets -->
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 0.5rem;">Load Verification Demos:</span>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; justify-content: flex-start;" onclick="loadSample('authentic')">
+                            <i class="bx bx-badge-check" style="color: var(--success);"></i> Load Authentic Details (Alice Smith - 3.85 GPA)
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; justify-content: flex-start;" onclick="loadSample('tampered')">
+                            <i class="bx bx-error" style="color: var(--danger);"></i> Load Tampered GPA Details (Alice Smith - 4.00 GPA!)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Output report -->
+            <div class="panel-card" id="results-panel">
+                <div class="card-title">
+                    <span>Audit Registry Report</span>
+                </div>
+
+                <!-- Placeholder -->
+                <div id="result-placeholder" style="text-align: center; padding: 5rem 1rem; color: var(--text-secondary);">
+                    <i class="bx bx-scan" style="font-size: 3.5rem; color: var(--text-muted); margin-bottom: 1rem; display: block;"></i>
+                    <p>Enter the certificate ID and matching details on the left, then trigger the signature audit.</p>
+                </div>
+
+                <!-- Loader -->
+                <div id="result-loader" style="display: none; text-align: center; padding: 5rem 1rem;">
+                    <div class="loader-spinner" style="margin-bottom: 1rem;"></div>
+                    <p style="color: var(--text-secondary);">Recalculating SHA-256 hash codes...</p>
+                </div>
+
+                <!-- Report Output -->
+                <div id="result-report" style="display: none; flex-direction: column; gap: 1.5rem; text-align: left;">
+                    <div class="verdict-header-box" id="report-header-box">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; font-weight: bold; display: block;">Audit Outcome</span>
+                        <div class="verdict-title" id="report-verdict">Verified</div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: bold;">Audited Certificate details:</span>
+                        <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.35rem; color: var(--text-secondary);" id="report-details-body"></div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; font-family: monospace; font-size: 0.75rem; word-break: break-all;">
+                        <span style="font-size: 0.75rem; font-weight: bold; color: white; display: block; margin-bottom: 4px; font-family: sans-serif;">Ledger SHA-256 Hash Signature:</span>
+                        <span id="report-hash" style="color: var(--primary);"></span>
+                    </div>
+
+                    <div style="border-top:1px solid var(--border-color); padding-top:1rem; font-size:0.85rem; line-height:1.5; color:var(--text-secondary);">
+                        <strong style="color: white;">Explanation:</strong>
+                        <p id="report-explanation" style="margin-top: 4px;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('verify-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const placeholder = document.getElementById('result-placeholder');
+        const loader = document.getElementById('result-loader');
+        const report = document.getElementById('result-report');
+        const resultsPanel = document.getElementById('results-panel');
+
+        const samples = {
+            authentic: {
+                id: 'cert-8881-aaa',
+                name: 'Alice Smith',
+                degree: 'Bachelor of Science',
+                major: 'Computer Science',
+                gpa: 3.85,
+                date: '2026-06-15'
+            },
+            tampered: {
+                id: 'cert-8881-aaa',
+                name: 'Alice Smith',
+                degree: 'Bachelor of Science',
+                major: 'Computer Science',
+                gpa: 4.00, // Modified!
+                date: '2026-06-15'
+            }
+        };
+
+        function loadSample(type) {
+            document.getElementById('cert_id').value = samples[type].id;
+            document.getElementById('student_name').value = samples[type].name;
+            document.getElementById('degree').value = samples[type].degree;
+            document.getElementById('major').value = samples[type].major;
+            document.getElementById('gpa').value = samples[type].gpa;
+            document.getElementById('issue_date').value = samples[type].date;
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            placeholder.style.display = 'none';
+            report.style.display = 'none';
+            loader.style.display = 'block';
+            submitBtn.disabled = true;
+
+            resultsPanel.classList.remove('border-success', 'border-danger');
+
+            const formData = new FormData(form);
+
+            fetch('/verify', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                submitBtn.disabled = false;
+
+                if (data.error) {
+                    alert(data.error);
+                    placeholder.style.display = 'block';
+                    return;
+                }
+
+                const verdictEl = document.getElementById('report-verdict');
+                const headerBox = document.getElementById('report-header-box');
+                const detailsBody = document.getElementById('report-details-body');
+                const hashEl = document.getElementById('report-hash');
+                const expEl = document.getElementById('report-explanation');
+
+                verdictEl.innerText = data.title;
+                expEl.innerText = data.explanation;
+
+                // Adjust color classes
+                const status = data.status_class;
+                verdictEl.className = `verdict-title ${status}`;
+                headerBox.className = `verdict-header-box ${status}`;
+                resultsPanel.classList.add(`border-${status}`);
+
+                if (data.status === 'authentic') {
+                    detailsBody.innerHTML = `
+                        <span>Student Name: <strong style="color:white;">${data.student_name}</strong></span>
+                        <span>Credential Degree: <strong style="color:white;">${data.degree}</strong></span>
+                        <span>Field Major: <strong style="color:white;">${data.major}</strong></span>
+                        <span>Graduation GPA: <strong style="color:var(--success); font-weight:700;">${data.gpa}</strong></span>
+                        <span>Issue Date: <strong style="color:white;">${data.issue_date}</strong></span>
+                    `;
+                    hashEl.innerText = data.crypto_hash;
+                    hashEl.parentElement.style.display = 'block';
+                } else {
+                    detailsBody.innerHTML = `
+                        <span style="color:var(--danger); font-weight:600;"><i class="bx bx-error"></i> Ledger details verification failed.</span>
+                    `;
+                    hashEl.parentElement.style.display = 'none';
+                }
+
+                report.style.display = 'flex';
+            })
+            .catch(err => {
+                console.error(err);
+                loader.style.display = 'none';
+                submitBtn.disabled = false;
+                placeholder.style.display = 'block';
+                alert("An error occurred during verification audits.");
+            });
+        });
+    </script>
+</body>
+</html>

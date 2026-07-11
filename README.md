@@ -26,6 +26,5 @@ A cryptographically secure academic credential verification application designed
    python app.py
    ```
 4. Access the portal at `http://127.0.0.1:5022`.
-5. Log in to the registrar panel using:
-   - **Username:** `university_registrar`
-   - **Password:** `issuer123`
+
+> **Demo Credentials:** See `demo_credentials.txt` in this folder.
